@@ -3,32 +3,15 @@
   <head>
     <title>TV Subscription Manager</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-      async function sendOtp() {
-        const email = document.getElementById("email").value;
-        await supabase.auth.signInWithOtp({ email });
-        alert("OTP sent to email");
-      }
-
-      async function verifyOtp() {
-        showUser();
-        loadCustomers();
-      }
-      async function showUser() {
-        const { data } = await supabase.auth.getUser();
-        if (data.user) {
-          userInfo.innerText = `Logged in as ${data.user.email}`;
-        }
-      }
-    </script>
   </head>
+
   <body>
-    <h2>Login (OTP)</h2>
+    <h2>Login (Email OTP)</h2>
     <input id="email" placeholder="Enter email" />
     <button onclick="sendOtp()">Send OTP</button>
 
     <br /><br />
-    <input id="otp" placeholder="Enter OTP" />
+    <input id="otp" placeholder="Enter OTP (from email)" />
     <button onclick="verifyOtp()">Verify</button>
 
     <hr />
@@ -61,17 +44,17 @@
     </table>
 
     <script>
+      // ✅ CREATE SUPABASE CLIENT FIRST
       const supabase = supabase.createClient(
         "https://fkyarkyvkjouvhoveopd.supabase.co",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreWFya3l2a2pvdXZob3Zlb3BkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MjUzNzYsImV4cCI6MjA4MjUwMTM3Nn0.36JORrel7jwRR_qfOhMoJKN9PxqUV150cFe7D6DB6dM"
       );
 
-      // ---- OTP LOGIN ----
+      // ---- OTP LOGIN (EMAIL) ----
       async function sendOtp() {
-        await supabase.auth.signInWithOtp({
-          phone: document.getElementById("phone").value,
-        });
-        alert("OTP sent");
+        const email = document.getElementById("email").value;
+        await supabase.auth.signInWithOtp({ email });
+        alert("OTP sent to email");
       }
 
       async function verifyOtp() {
@@ -90,7 +73,7 @@
       async function showUser() {
         const { data } = await supabase.auth.getUser();
         if (data.user) {
-          userInfo.innerText = `Logged in as ${data.user.phone}`;
+          userInfo.innerText = `Logged in as ${data.user.email}`;
         }
       }
 
@@ -127,12 +110,12 @@
           );
 
           list.innerHTML += `
-      <tr>
-        <td>${c.customer_name}</td>
-        <td>${c.product}</td>
-        <td>${c.service_end_date}</td>
-        <td>${days}</td>
-      </tr>`;
+            <tr>
+              <td>${c.customer_name}</td>
+              <td>${c.product}</td>
+              <td>${c.service_end_date}</td>
+              <td>${days}</td>
+            </tr>`;
         });
       }
     </script>
