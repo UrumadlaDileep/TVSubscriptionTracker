@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TV Subscription Manager</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<h2>Login (OTP)</h2>
+<input id="phone" placeholder="+91XXXXXXXXXX">
+<button onclick="sendOtp()">Send OTP</button>
+
+<br><br>
+<input id="otp" placeholder="Enter OTP">
+<button onclick="verifyOtp()">Verify</button>
+
+<hr>
+
+<button onclick="logout()">Logout</button>
+<span id="userInfo"></span>
+
+<hr>
+
+<h3>Add Customer</h3>
+<input id="name" placeholder="Customer Name">
+<input id="mobile" placeholder="Mobile">
+<input id="vc" placeholder="VC Number">
+<input id="stb" placeholder="STB Serial Number">
+<input id="product" placeholder="Product">
+<input id="end" type="date">
+<button onclick="addCustomer()">Add</button>
+
+<h3>Customers</h3>
+<table border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Product</th>
+      <th>End Date</th>
+      <th>Remaining Days</th>
+    </tr>
+  </thead>
+  <tbody id="list"></tbody>
+</table>
+
+<script>
+const supabase = supabase.createClient(
+  "https://fkyarkyvkjouvhoveopd.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreWFya3l2a2pvdXZob3Zlb3BkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MjUzNzYsImV4cCI6MjA4MjUwMTM3Nn0.36JORrel7jwRR_qfOhMoJKN9PxqUV150cFe7D6DB6dM"
+);
+
+// ---- OTP LOGIN ----
+async function sendOtp() {
+  await supabase.auth.signInWithOtp({
+    phone: document.getElementById("phone").value
+  });
+  alert("OTP sent");
+}
+
+async function verifyOtp() {
+  showUser();
+  loadCustomers();
+}
+
+// ---- LOGOUT ----
+async function logout() {
+  await supabase.auth.signOut();
+  alert("Logged out");
+  location.reload();
+}
+
+// ---- USER INFO ----
+async function showUser() {
+  const { data } = await supabase.auth.getUser();
+  if (data.user) {
+    userInfo.innerText = `Logged in as ${data.user.phone}`;
+  }
+}
+
+// ---- ADD CUSTOMER ----
+async function addCustomer() {
+  const user = (await supabase.auth.getUser()).data.user;
+
+  await supabase.from("customers").insert({
+    customer_name: name.value,
+    mobile: mobile.value,
+    vc_number: vc.value,
+    stb_serial_number: stb.value,
+    product: product.value,
+    service_end_date: end.value,
+    user_id: user.id
+  });
+
+  loadCustomers();
+}
+
+// ---- LOAD CUSTOMERS (AUTO SORT) ----
+async function loadCustomers() {
+  const { data } = await supabase
+    .from("customers")
+    .select("*")
+    .order("service_end_date");
+
+  list.innerHTML = "";
+  const today = new Date();
+
+  data.forEach(c => {
+    const days =
+      Math.ceil((new Date(c.service_end_date) - today) / 86400000);
+
+    list.innerHTML += `
+      <tr>
+        <td>${c.customer_name}</td>
+        <td>${c.product}</td>
+        <td>${c.service_end_date}</td>
+        <td>${days}</td>
+      </tr>`;
+  });
+}
+</script>
+
+</body>
+</html>
