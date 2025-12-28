@@ -45,7 +45,7 @@
 
     <script>
       // ✅ CREATE SUPABASE CLIENT FIRST
-      const supabase = supabase.createClient(
+      const supabaseClient = supabase.createClient(
         "https://fkyarkyvkjouvhoveopd.supabase.co",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreWFya3l2a2pvdXZob3Zlb3BkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MjUzNzYsImV4cCI6MjA4MjUwMTM3Nn0.36JORrel7jwRR_qfOhMoJKN9PxqUV150cFe7D6DB6dM"
       );
@@ -53,7 +53,7 @@
       // ---- OTP LOGIN (EMAIL) ----
       async function sendOtp() {
         const email = document.getElementById("email").value;
-        await supabase.auth.signInWithOtp({ email });
+        await supabaseClient.auth.signInWithOtp({ email });
         alert("OTP sent to email");
       }
 
@@ -64,14 +64,14 @@
 
       // ---- LOGOUT ----
       async function logout() {
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
         alert("Logged out");
         location.reload();
       }
 
       // ---- USER INFO ----
       async function showUser() {
-        const { data } = await supabase.auth.getUser();
+        const { data } = await supabaseClient.auth.getUser();
         if (data.user) {
           userInfo.innerText = `Logged in as ${data.user.email}`;
         }
@@ -79,9 +79,9 @@
 
       // ---- ADD CUSTOMER ----
       async function addCustomer() {
-        const user = (await supabase.auth.getUser()).data.user;
+        const user = (await supabaseClient.auth.getUser()).data.user;
 
-        await supabase.from("customers").insert({
+        await supabaseClient.from("customers").insert({
           customer_name: name.value,
           mobile: mobile.value,
           vc_number: vc.value,
@@ -96,7 +96,7 @@
 
       // ---- LOAD CUSTOMERS (AUTO SORT) ----
       async function loadCustomers() {
-        const { data } = await supabase
+        const { data } = await supabaseClient
           .from("customers")
           .select("*")
           .order("service_end_date");
