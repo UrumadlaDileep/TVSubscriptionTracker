@@ -10,10 +10,6 @@
     <input id="email" placeholder="Enter email" />
     <button onclick="sendOtp()">Send OTP</button>
 
-    <br /><br />
-    <input id="otp" placeholder="Enter OTP (from email)" />
-    <button onclick="verifyOtp()">Verify</button>
-
     <hr />
 
     <button onclick="logout()">Logout</button>
@@ -126,6 +122,13 @@
             </tr>`;
         });
       }
+      window.onload = async () => {
+        const { data } = await supabaseClient.auth.getUser();
+        if (data.user) {
+          showUser();
+          loadCustomers();
+        }
+      };
     </script>
   </body>
 </html>
