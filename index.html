@@ -87,7 +87,7 @@
       async function addCustomer() {
         const user = (await supabaseClient.auth.getUser()).data.user;
 
-        await supabaseClient.from("customers").insert({
+        const { error } = await supabaseClient.from("customers").insert({
           customer_name: name.value,
           mobile: mobile.value,
           vc_number: vc.value,
@@ -96,6 +96,11 @@
           service_end_date: end.value,
           user_id: user.id,
         });
+
+        if (error) {
+          console.error(error);
+          alert(error.message);
+        }
 
         loadCustomers();
       }
