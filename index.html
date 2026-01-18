@@ -3,6 +3,52 @@
   <head>
     <title>TV Subscription Manager</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      /* Make table responsive on smaller screens */
+      .table-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        white-space: nowrap; /* Prevent text from breaking */
+        text-align: left;
+      }
+
+      /* Zebra rows for clarity */
+      tr:nth-child(even) {
+        background: #f2f2f2;
+      }
+
+      /* Header styling */
+      th {
+        background: #333;
+        color: white;
+        position: sticky;
+        top: 0; /* Keep header visible while scrolling horizontal */
+        z-index: 2;
+      }
+
+      /* For very small screens (≤ 480px) */
+      @media (max-width: 480px) {
+        table {
+          font-size: 12px;
+        }
+        th,
+        td {
+          padding: 6px;
+        }
+      }
+    </style>
   </head>
 
   <body>
@@ -25,18 +71,45 @@
       <button onclick="addCustomer()">Add</button>
 
       <h3>Customers</h3>
-      <table border="1" cellpadding="6">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Product</th>
-            <th>End Date</th>
-            <th>Remaining Days</th>
-          </tr>
-        </thead>
-        <tbody id="list"></tbody>
-      </table>
+      <div class="table-container">
+        <table border="1" cellpadding="6">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th>VC Number</th>
+              <th>STB Serial</th>
+              <th>Product</th>
+              <th>End Date</th>
+              <th>Remaining Days</th>
+              <th>Edit</th>
+            </tr>
+          </thead>
+          <tbody id="list"></tbody>
+        </table>
+      </div>
+      <div
+        id="editPopup"
+        style="
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          padding: 20px;
+          background: white;
+          border: 1px solid #ccc;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+          z-index: 999;
+        "
+      >
+        <h3>Edit End Date</h3>
+        <input type="date" id="editEndDate" />
+        <br /><br />
+        <button onclick="saveEndDate()">Save</button>
+        <button onclick="closePopup()">Cancel</button>
+      </div>
     </div>
     <script>
       // ✅ CREATE SUPABASE CLIENT FIRST
@@ -128,9 +201,15 @@
     <tr>
       <td>${index + 1}</td>
       <td>${c.customer_name}</td>
+      <td>${c.mobile}</td>
+      <td>${c.vc_number}</td>
+      <td>${c.stb_serial_number}</td>
       <td>${c.product}</td>
       <td>${c.service_end_date}</td>
       <td>${days}</td>
+      <td><button onclick="editCustomer('${c.id}', '${
+            c.service_end_date
+          }')">Edit</button></td>
     </tr>`;
         });
       }
@@ -141,6 +220,33 @@
           loadCustomers();
         }
       };
+      let editingCustomerId = null;
+
+      function editCustomer(id, currentDate) {
+        editingCustomerId = id;
+        document.getElementById("editEndDate").value = currentDate;
+        document.getElementById("editPopup").style.display = "block";
+      }
+
+      function closePopup() {
+        document.getElementById("editPopup").style.display = "none";
+      }
+      async function saveEndDate() {
+        const newDate = document.getElementById("editEndDate").value;
+
+        const { error } = await supabaseClient
+          .from("customers")
+          .update({ service_end_date: newDate })
+          .eq("id", editingCustomerId);
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        closePopup();
+        loadCustomers();
+      }
     </script>
   </body>
 </html>
