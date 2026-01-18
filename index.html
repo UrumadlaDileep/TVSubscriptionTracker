@@ -11,34 +11,32 @@
     <button onclick="sendOtp()">Send OTP</button>
 
     <hr />
+    <div id="appSection" style="display: none">
+      <button onclick="logout()">Logout</button>
+      <span id="userInfo"></span>
+      <hr />
+      <h3>Add Customer</h3>
+      <input id="name" placeholder="Customer Name" />
+      <input id="mobile" placeholder="Mobile" />
+      <input id="vc" placeholder="VC Number" />
+      <input id="stb" placeholder="STB Serial Number" />
+      <input id="product" placeholder="Product" />
+      <input id="end" type="date" />
+      <button onclick="addCustomer()">Add</button>
 
-    <button onclick="logout()">Logout</button>
-    <span id="userInfo"></span>
-
-    <hr />
-
-    <h3>Add Customer</h3>
-    <input id="name" placeholder="Customer Name" />
-    <input id="mobile" placeholder="Mobile" />
-    <input id="vc" placeholder="VC Number" />
-    <input id="stb" placeholder="STB Serial Number" />
-    <input id="product" placeholder="Product" />
-    <input id="end" type="date" />
-    <button onclick="addCustomer()">Add</button>
-
-    <h3>Customers</h3>
-    <table border="1" cellpadding="6">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Product</th>
-          <th>End Date</th>
-          <th>Remaining Days</th>
-        </tr>
-      </thead>
-      <tbody id="list"></tbody>
-    </table>
-
+      <h3>Customers</h3>
+      <table border="1" cellpadding="6">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Product</th>
+            <th>End Date</th>
+            <th>Remaining Days</th>
+          </tr>
+        </thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
     <script>
       // ✅ CREATE SUPABASE CLIENT FIRST
       const supabaseClient = supabase.createClient(
@@ -71,6 +69,8 @@
         await supabaseClient.auth.signOut();
         alert("Logged out");
         location.reload();
+        document.getElementById("appSection").style.display = "none";
+        location.reload();
       }
 
       // ---- USER INFO ----
@@ -78,6 +78,8 @@
         const { data } = await supabaseClient.auth.getUser();
         if (data.user) {
           userInfo.innerText = `Logged in as ${data.user.email}`;
+          //show app
+          document.getElementById("appSection").style.display = "block";
         }
       }
 
