@@ -107,10 +107,13 @@
 
       // ---- LOAD CUSTOMERS (AUTO SORT) ----
       async function loadCustomers() {
-        const { data } = await supabaseClient
+        const { data, error } = await supabaseClient
           .from("customers")
           .select("*")
           .order("service_end_date");
+
+        console.log("Load error:", error);
+        console.log("Load data:", data);
 
         list.innerHTML = "";
         const today = new Date();
