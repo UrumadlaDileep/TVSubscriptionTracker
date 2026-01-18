@@ -28,6 +28,7 @@
       <table border="1" cellpadding="6">
         <thead>
           <tr>
+            <th>#</th>
             <th>Name</th>
             <th>Product</th>
             <th>End Date</th>
@@ -118,18 +119,19 @@
         list.innerHTML = "";
         const today = new Date();
 
-        data.forEach((c) => {
+        data.forEach((c, index) => {
           const days = Math.ceil(
             (new Date(c.service_end_date) - today) / 86400000
           );
 
           list.innerHTML += `
-            <tr>
-              <td>${c.customer_name}</td>
-              <td>${c.product}</td>
-              <td>${c.service_end_date}</td>
-              <td>${days}</td>
-            </tr>`;
+    <tr>
+      <td>${index + 1}</td>
+      <td>${c.customer_name}</td>
+      <td>${c.product}</td>
+      <td>${c.service_end_date}</td>
+      <td>${days}</td>
+    </tr>`;
         });
       }
       window.onload = async () => {
