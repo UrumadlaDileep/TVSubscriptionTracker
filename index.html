@@ -88,12 +88,12 @@
         const user = (await supabaseClient.auth.getUser()).data.user;
 
         const { error } = await supabaseClient.from("customers").insert({
-          customer_name: name.value,
-          mobile: mobile.value,
-          vc_number: vc.value,
-          stb_serial_number: stb.value,
-          product: product.value,
-          service_end_date: end.value,
+          customer_name: document.getElementById("name").value,
+          mobile: document.getElementById("mobile").value,
+          vc_number: document.getElementById("vc").value,
+          stb_serial_number: document.getElementById("stb").value,
+          product: document.getElementById("product").value,
+          service_end_date: document.getElementById("end").value,
           user_id: user.id,
         });
 
