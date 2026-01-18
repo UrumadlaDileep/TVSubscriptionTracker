@@ -18,7 +18,8 @@
         font-size: 14px;
       }
 
-      th, td {
+      th,
+      td {
         padding: 8px;
         white-space: nowrap;
         text-align: left;
@@ -52,7 +53,8 @@
         table {
           font-size: 12px;
         }
-        th, td {
+        th,
+        td {
           padding: 6px;
         }
       }
@@ -67,14 +69,13 @@
         padding: 20px;
         background: white;
         border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         z-index: 999;
       }
     </style>
   </head>
 
   <body>
-
     <!-- LOGIN SECTION -->
     <h2>Login</h2>
     <input id="email" placeholder="Email" />
@@ -86,7 +87,7 @@
     <hr />
 
     <!-- MAIN APPLICATION -->
-    <div id="appSection" style="display:none">
+    <div id="appSection" style="display: none">
       <button onclick="logout()">Logout</button>
       <span id="userInfo"></span>
       <hr />
@@ -113,7 +114,9 @@
               <th>STB Serial <span class="handle" draggable="true">⠿</span></th>
               <th>Product <span class="handle" draggable="true">⠿</span></th>
               <th>End Date <span class="handle" draggable="true">⠿</span></th>
-              <th>Remaining Days <span class="handle" draggable="true">⠿</span></th>
+              <th>
+                Remaining Days <span class="handle" draggable="true">⠿</span>
+              </th>
               <th>Edit <span class="handle" draggable="true">⠿</span></th>
             </tr>
           </thead>
@@ -129,7 +132,6 @@
         <button onclick="saveEndDate()">Save</button>
         <button onclick="closePopup()">Cancel</button>
       </div>
-
     </div>
 
     <script>
@@ -145,12 +147,12 @@
           LOGIN (email + password)
       ====================================================== */
       async function login() {
-        const email = email.value;
-        const password = password.value;
+        const emailValue = document.getElementById("email").value;
+        const passwordValue = document.getElementById("password").value;
 
         const { data, error } = await supabaseClient.auth.signInWithPassword({
-          email,
-          password,
+          email: emailValue,
+          password: passwordValue,
         });
 
         if (error) {
@@ -213,7 +215,9 @@
         const today = new Date();
 
         data.forEach((c, index) => {
-          const days = Math.ceil((new Date(c.service_end_date) - today) / 86400000);
+          const days = Math.ceil(
+            (new Date(c.service_end_date) - today) / 86400000
+          );
 
           list.innerHTML += `
             <tr>
@@ -225,7 +229,9 @@
               <td>${c.product}</td>
               <td>${c.service_end_date}</td>
               <td>${days}</td>
-              <td><button onclick="editCustomer('${c.id}', '${c.service_end_date}')">Edit</button></td>
+              <td><button onclick="editCustomer('${c.id}', '${
+            c.service_end_date
+          }')">Edit</button></td>
             </tr>`;
         });
       }
