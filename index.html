@@ -53,7 +53,15 @@
       // ---- OTP LOGIN (EMAIL) ----
       async function sendOtp() {
         const email = document.getElementById("email").value;
-        await supabaseClient.auth.signInWithOtp({ email });
+
+        await supabaseClient.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo:
+              "https://urumadladileep.github.io/TVSubscriptionTracker/",
+          },
+        });
+
         alert("OTP sent to email");
       }
 
