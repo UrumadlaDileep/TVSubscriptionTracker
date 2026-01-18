@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TV Subscription Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      /* Responsive container */
+      .table-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        white-space: nowrap;
+        text-align: left;
+      }
+
+      th {
+        background: #333;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+
+      /* Drag handle */
+      .handle {
+        cursor: grab;
+        margin-left: 6px;
+        font-size: 14px;
+        user-select: none;
+      }
+      .handle:active {
+        cursor: grabbing;
+      }
+
+      tr:nth-child(even) {
+        background: #f2f2f2;
+      }
+
+      @media (max-width: 480px) {
+        table {
+          font-size: 12px;
+        }
+        th,
+        td {
+          padding: 6px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Login (Email OTP)</h2>
+    <input id="email" placeholder="Enter email" />
+    <button onclick="sendOtp()">Send OTP</button>
+
+    <hr />
+    <div id="appSection" style="display: none">
+      <button onclick="logout()">Logout</button>
+      <span id="userInfo"></span>
+      <hr />
+      <h3>Add Customer</h3>
+      <input id="name" placeholder="Customer Name" />
+      <input id="mobile" placeholder="Mobile" />
+      <input id="vc" placeholder="VC Number" />
+      <input id="stb" placeholder="STB Serial Number" />
+      <input id="product" placeholder="Product" />
+      <input id="end" type="date" />
+      <button onclick="addCustomer()">Add</button>
+
+      <h3>Customers</h3>
+      <div class="table-container">
+        <table border="1" cellpadding="6">
+          <thead>
+            <tr id="tableHeaderRow">
+              <th># <span class="handle" draggable="true">⠿</span></th>
+              <th>Name <span class="handle" draggable="true">⠿</span></th>
+              <th>Mobile <span class="handle" draggable="true">⠿</span></th>
+              <th>VC Number <span class="handle" draggable="true">⠿</span></th>
+              <th>STB Serial <span class="handle" draggable="true">⠿</span></th>
+              <th>Product <span class="handle" draggable="true">⠿</span></th>
+              <th>End Date <span class="handle" draggable="true">⠿</span></th>
+              <th>
+                Remaining Days <span class="handle" draggable="true">⠿</span>
+              </th>
+              <th>Edit <span class="handle" draggable="true">⠿</span></th>
+            </tr>
+          </thead>
+          <tbody id="list"></tbody>
+        </table>
+      </div>
+      <div
+        id="editPopup"
+        style="
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          padding: 20px;
+          background: white;
+          border: 1px solid #ccc;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+          z-index: 999;
+        "
+      >
+        <h3>Edit End Date</h3>
+        <input type="date" id="editEndDate" />
+        <br /><br />
+        <button onclick="saveEndDate()">Save</button>
+        <button onclick="closePopup()">Cancel</button>
+      </div>
+    </div>
+    <script>
+      // ✅ CREATE SUPABASE CLIENT FIRST
+      const supabaseClient = supabase.createClient(
+        "https://fkyarkyvkjouvhoveopd.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreWFya3l2a2pvdXZob3Zlb3BkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MjUzNzYsImV4cCI6MjA4MjUwMTM3Nn0.36JORrel7jwRR_qfOhMoJKN9PxqUV150cFe7D6DB6dM"
+      );
+
+      // ---- OTP LOGIN (EMAIL) ----
+      async function sendOtp() {
+        const email = document.getElementById("email").value;
+
+        await supabaseClient.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo:
+              "https://urumadladileep.github.io/TVSubscriptionTracker/",
+          },
+        });
+
+        alert("OTP sent to email");
+      }
+
+      async function verifyOtp() {
+        showUser();
+        loadCustomers();
+      }
+
+      // ---- LOGOUT ----
+      async function logout() {
+        await supabaseClient.auth.signOut();
+        alert("Logged out");
+        location.reload();
+        document.getElementById("appSection").style.display = "none";
+        location.reload();
+      }
+
+      // ---- USER INFO ----
+      async function showUser() {
+        const { data } = await supabaseClient.auth.getUser();
+        if (data.user) {
+          userInfo.innerText = `Logged in as ${data.user.email}`;
+          //show app
+          document.getElementById("appSection").style.display = "block";
+        }
+      }
+
+      // ---- ADD CUSTOMER ----
+      async function addCustomer() {
+        const user = (await supabaseClient.auth.getUser()).data.user;
+
+        const { error } = await supabaseClient.from("customers").insert({
+          customer_name: document.getElementById("name").value,
+          mobile: document.getElementById("mobile").value,
+          vc_number: document.getElementById("vc").value,
+          stb_serial_number: document.getElementById("stb").value,
+          product: document.getElementById("product").value,
+          service_end_date: document.getElementById("end").value,
+          user_id: user.id,
+        });
+
+        if (error) {
+          console.error(error);
+          alert(error.message);
+        }
+
+        loadCustomers();
+      }
+
+      // ---- LOAD CUSTOMERS (AUTO SORT) ----
+      async function loadCustomers() {
+        const { data, error } = await supabaseClient
+          .from("customers")
+          .select("*")
+          .order("service_end_date");
+
+        console.log("Load error:", error);
+        console.log("Load data:", data);
+
+        list.innerHTML = "";
+        const today = new Date();
+
+        data.forEach((c, index) => {
+          const days = Math.ceil(
+            (new Date(c.service_end_date) - today) / 86400000
+          );
+
+          list.innerHTML += `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${c.customer_name}</td>
+      <td>${c.mobile}</td>
+      <td>${c.vc_number}</td>
+      <td>${c.stb_serial_number}</td>
+      <td>${c.product}</td>
+      <td>${c.service_end_date}</td>
+      <td>${days}</td>
+      <td><button onclick="editCustomer('${c.id}', '${
+            c.service_end_date
+          }')">Edit</button></td>
+    </tr>`;
+        });
+      }
+      window.onload = async () => {
+        const { data } = await supabaseClient.auth.getUser();
+        if (data.user) {
+          showUser();
+          loadCustomers();
+        }
+      };
+      let editingCustomerId = null;
+
+      function editCustomer(id, currentDate) {
+        editingCustomerId = id;
+        document.getElementById("editEndDate").value = currentDate;
+        document.getElementById("editPopup").style.display = "block";
+      }
+
+      function closePopup() {
+        document.getElementById("editPopup").style.display = "none";
+      }
+      async function saveEndDate() {
+        const newDate = document.getElementById("editEndDate").value;
+
+        const { error } = await supabaseClient
+          .from("customers")
+          .update({ service_end_date: newDate })
+          .eq("id", editingCustomerId);
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        closePopup();
+        loadCustomers();
+      }
+      let draggedIndex = null;
+
+      /* ----- DRAG EVENTS (Handle Only) ----- */
+      document.addEventListener("dragstart", function (e) {
+        if (!e.target.classList.contains("handle")) return;
+        draggedIndex = [...e.target.closest("tr").children].indexOf(
+          e.target.closest("th")
+        );
+      });
+
+      document.addEventListener("dragover", function (e) {
+        if (!e.target.closest("th")) return;
+        e.preventDefault();
+      });
+
+      document.addEventListener("drop", function (e) {
+        const targetTh = e.target.closest("th");
+        if (!targetTh) return;
+
+        const dropIndex = [...targetTh.parentNode.children].indexOf(targetTh);
+        reorderColumns(draggedIndex, dropIndex);
+      });
+
+      /* ----- REORDER FUNCTION ----- */
+      function reorderColumns(from, to) {
+        if (from === to) return;
+
+        const table = document.querySelector("table");
+        const headerRow = document.getElementById("tableHeaderRow");
+
+        // Move header column
+        headerRow.insertBefore(
+          headerRow.children[from],
+          headerRow.children[to]
+        );
+
+        // Move data columns for each row
+        const rows = document.querySelectorAll("#list tr");
+
+        rows.forEach((row) => {
+          let cells = row.children;
+          row.insertBefore(cells[from], cells[to]);
+        });
+      }
+    </script>
+  </body>
+</html>
