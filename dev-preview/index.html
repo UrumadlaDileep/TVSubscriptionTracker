@@ -2,202 +2,234 @@
 <html>
   <head>
     <title>TV Subscription Manager</title>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-      /* Responsive container */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      input,
+      button {
+        padding: 8px;
+        margin: 4px;
+      }
+
       .table-container {
         width: 100%;
         overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 14px;
       }
 
       th,
       td {
-        padding: 8px;
-        white-space: nowrap;
+        padding: 10px;
+        border: 1px solid #ccc;
         text-align: left;
+        white-space: nowrap;
       }
 
       th {
         background: #333;
         color: white;
-        position: sticky;
-        top: 0;
-        z-index: 2;
-      }
-
-      /* Drag handle */
-      .handle {
-        cursor: grab;
-        margin-left: 6px;
-        font-size: 14px;
-        user-select: none;
-      }
-
-      .handle:active {
-        cursor: grabbing;
       }
 
       tr:nth-child(even) {
         background: #f2f2f2;
       }
 
-      @media (max-width: 480px) {
-        table {
-          font-size: 12px;
-        }
-        th,
-        td {
-          padding: 6px;
-        }
-      }
-
-      /* Center popup */
       #editPopup {
         display: none;
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        padding: 20px;
         background: white;
         border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        z-index: 999;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+      }
+
+      @media (max-width: 600px) {
+        table {
+          font-size: 12px;
+        }
       }
     </style>
   </head>
 
   <body>
-    <!-- LOGIN SECTION -->
+    <!-- LOGIN -->
     <h2>Login</h2>
+
     <input id="email" placeholder="Email" />
     <br /><br />
+
     <input id="password" type="password" placeholder="Password" />
     <br /><br />
+
     <button onclick="login()">Login</button>
 
     <hr />
 
-    <!-- MAIN APPLICATION -->
+    <!-- MAIN APP -->
     <div id="appSection" style="display: none">
       <button onclick="logout()">Logout</button>
+
       <span id="userInfo"></span>
+
       <hr />
 
+      <!-- ADD CUSTOMER -->
       <h3>Add Customer</h3>
+
       <input id="name" placeholder="Customer Name" />
-      <input id="mobile" placeholder="Mobile" />
-      <input id="vc" placeholder="VC Number" />
-      <input id="stb" placeholder="STB Serial Number" />
-      <input id="product" placeholder="Product" />
+
       <input id="end" type="date" />
+
       <button onclick="addCustomer()">Add</button>
 
+      <hr />
+
+      <!-- CUSTOMER LIST -->
       <h3>Customers</h3>
 
       <div class="table-container">
-        <table border="1" cellpadding="6">
+        <table>
           <thead>
-            <tr id="tableHeaderRow">
-              <th># <span class="handle" draggable="true">⠿</span></th>
-              <th>Name <span class="handle" draggable="true">⠿</span></th>
-              <th>Mobile <span class="handle" draggable="true">⠿</span></th>
-              <th>VC Number <span class="handle" draggable="true">⠿</span></th>
-              <th>STB Serial <span class="handle" draggable="true">⠿</span></th>
-              <th>Product <span class="handle" draggable="true">⠿</span></th>
-              <th>End Date <span class="handle" draggable="true">⠿</span></th>
-              <th>
-                Remaining Days <span class="handle" draggable="true">⠿</span>
-              </th>
-              <th>Edit <span class="handle" draggable="true">⠿</span></th>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>End Date</th>
+              <th>Remaining Days</th>
+              <th>Edit</th>
+              <th>Delete</th>
             </tr>
           </thead>
+
           <tbody id="list"></tbody>
         </table>
       </div>
+    </div>
 
-      <!-- EDIT POPUP -->
-      <div id="editPopup">
-        <h3>Edit End Date</h3>
-        <input type="date" id="editEndDate" />
-        <br /><br />
-        <button onclick="saveEndDate()">Save</button>
-        <button onclick="closePopup()">Cancel</button>
-      </div>
+    <!-- EDIT POPUP -->
+    <div id="editPopup">
+      <h3>Edit End Date</h3>
+
+      <input type="date" id="editEndDate" />
+
+      <br /><br />
+
+      <button onclick="saveEndDate()">Save</button>
+
+      <button onclick="closePopup()">Cancel</button>
     </div>
 
     <script>
       /* ======================================================
-          SUPABASE CLIENT
+          SUPABASE CONFIG
       ====================================================== */
+
       const supabaseClient = supabase.createClient(
         "https://bayhhgjlihhoooehdztc.supabase.co/rest/v1/",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJheWhoZ2psaWhob29vZWhkenRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MDQyMjUsImV4cCI6MjA5NTE4MDIyNX0.JGjrw0VyiPGR1Ba8VHCay632aDBA8Hyt3y2_EX0cGiw"
       );
 
       /* ======================================================
-          LOGIN (email + password)
+          LOGIN
       ====================================================== */
+
       async function login() {
         const emailValue = document.getElementById("email").value;
-        const passwordValue = document.getElementById("password").value;
 
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-          email: emailValue,
-          password: passwordValue,
-        });
+        const passwordValue =
+          document.getElementById("password").value;
+
+        const { error } =
+          await supabaseClient.auth.signInWithPassword({
+            email: emailValue,
+            password: passwordValue,
+          });
 
         if (error) {
           alert(error.message);
           return;
         }
 
-        alert("Login successful!");
+        alert("Login Successful");
+
         showUser();
+
         loadCustomers();
       }
 
+      /* ======================================================
+          LOGOUT
+      ====================================================== */
+
       async function logout() {
         await supabaseClient.auth.signOut();
+
         location.reload();
       }
 
+      /* ======================================================
+          SHOW USER
+      ====================================================== */
+
       async function showUser() {
-        const { data } = await supabaseClient.auth.getUser();
+        const { data } =
+          await supabaseClient.auth.getUser();
+
         if (data.user) {
-          userInfo.innerText = `Logged in as ${data.user.email}`;
-          appSection.style.display = "block";
+          document.getElementById(
+            "userInfo"
+          ).innerText = `Logged in as ${data.user.email}`;
+
+          document.getElementById(
+            "appSection"
+          ).style.display = "block";
         }
       }
 
       /* ======================================================
           ADD CUSTOMER
       ====================================================== */
-      async function addCustomer() {
-        const user = (await supabaseClient.auth.getUser()).data.user;
 
-        const { error } = await supabaseClient.from("customers").insert({
-          customer_name: name.value,
-          mobile: mobile.value,
-          vc_number: vc.value,
-          stb_serial_number: stb.value,
-          product: product.value,
-          service_end_date: end.value,
-          user_id: user.id,
-        });
+      async function addCustomer() {
+        const customerName =
+          document.getElementById("name").value;
+
+        const endDate =
+          document.getElementById("end").value;
+
+        if (!customerName || !endDate) {
+          alert("Please fill all fields");
+          return;
+        }
+
+        const { error } = await supabaseClient
+          .from("customers")
+          .insert({
+            name: customerName,
+            end_date: endDate,
+          });
 
         if (error) {
           alert(error.message);
           return;
         }
+
+        document.getElementById("name").value = "";
+
+        document.getElementById("end").value = "";
 
         loadCustomers();
       }
@@ -205,67 +237,106 @@
       /* ======================================================
           LOAD CUSTOMERS
       ====================================================== */
+
       async function loadCustomers() {
-        const { data, error } = await supabaseClient
-          .from("customers")
-          .select("*")
-          .order("service_end_date");
+        const { data, error } =
+          await supabaseClient
+            .from("customers")
+            .select("*")
+            .order("end_date");
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        const list = document.getElementById("list");
 
         list.innerHTML = "";
+
         const today = new Date();
 
-        data.forEach((c, index) => {
+        data.forEach((customer, index) => {
+          const endDate = new Date(customer.end_date);
+
           const days = Math.ceil(
-            (new Date(c.service_end_date) - today) / 86400000
+            (endDate - today) / 86400000
           );
+
+          const remainingText =
+            days < 0
+              ? `Expired ${Math.abs(days)} days ago`
+              : `${days} days`;
 
           list.innerHTML += `
             <tr>
               <td>${index + 1}</td>
-              <td>${c.customer_name}</td>
-              <td>${c.mobile}</td>
-              <td>${c.vc_number}</td>
-              <td>${c.stb_serial_number}</td>
-              <td>${c.product}</td>
-              <td>${c.service_end_date}</td>
-              <td>${days}</td>
-              <td><button onclick="editCustomer('${c.id}', '${
-            c.service_end_date
-          }')">Edit</button></td>
-            </tr>`;
+
+              <td>${customer.name}</td>
+
+              <td>${customer.end_date}</td>
+
+              <td>${remainingText}</td>
+
+              <td>
+                <button
+                  onclick="editCustomer(
+                    '${customer.name}',
+                    '${customer.end_date}'
+                  )"
+                >
+                  Edit
+                </button>
+              </td>
+
+              <td>
+                <button
+                  onclick="deleteCustomer(
+                    '${customer.name}'
+                  )"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `;
         });
       }
 
-      window.onload = async () => {
-        const { data } = await supabaseClient.auth.getUser();
-        if (data.user) {
-          showUser();
-          loadCustomers();
-        }
-      };
-
       /* ======================================================
-          EDIT POPUP
+          EDIT CUSTOMER
       ====================================================== */
-      let editingCustomerId = null;
 
-      function editCustomer(id, currentDate) {
-        editingCustomerId = id;
-        editEndDate.value = currentDate;
-        editPopup.style.display = "block";
+      let editingCustomerName = null;
+
+      function editCustomer(name, currentDate) {
+        editingCustomerName = name;
+
+        document.getElementById(
+          "editEndDate"
+        ).value = currentDate;
+
+        document.getElementById(
+          "editPopup"
+        ).style.display = "block";
       }
 
       function closePopup() {
-        editPopup.style.display = "none";
+        document.getElementById(
+          "editPopup"
+        ).style.display = "none";
       }
 
       async function saveEndDate() {
-        const newDate = editEndDate.value;
+        const newDate =
+          document.getElementById("editEndDate").value;
 
         const { error } = await supabaseClient
           .from("customers")
-          .update({ service_end_date: newDate })
-          .eq("id", editingCustomerId);
+          .update({
+            end_date: newDate,
+          })
+          .eq("name", editingCustomerName);
 
         if (error) {
           alert(error.message);
@@ -273,56 +344,48 @@
         }
 
         closePopup();
+
         loadCustomers();
       }
 
       /* ======================================================
-          DRAG & DROP COLUMN REORDER
+          DELETE CUSTOMER
       ====================================================== */
-      let draggedIndex = null;
 
-      document.addEventListener("dragstart", function (e) {
-        if (!e.target.classList.contains("handle")) return;
-
-        const th = e.target.closest("th");
-        th.setAttribute("draggable", "true");
-
-        draggedIndex = [...th.parentNode.children].indexOf(th);
-      });
-
-      document.addEventListener("dragover", function (e) {
-        if (!e.target.closest("th")) return;
-        e.preventDefault();
-      });
-
-      document.addEventListener("drop", function (e) {
-        const targetTh = e.target.closest("th");
-        if (!targetTh) return;
-
-        const dropIndex = [...targetTh.parentNode.children].indexOf(targetTh);
-
-        reorderColumns(draggedIndex, dropIndex);
-
-        document
-          .querySelectorAll("th[draggable='true']")
-          .forEach((th) => th.removeAttribute("draggable"));
-      });
-
-      function reorderColumns(from, to) {
-        if (from === to) return;
-
-        const headerRow = document.getElementById("tableHeaderRow");
-
-        headerRow.insertBefore(
-          headerRow.children[from],
-          headerRow.children[to]
+      async function deleteCustomer(name) {
+        const confirmDelete = confirm(
+          "Delete customer?"
         );
 
-        document.querySelectorAll("#list tr").forEach((row) => {
-          let cells = row.children;
-          row.insertBefore(cells[from], cells[to]);
-        });
+        if (!confirmDelete) return;
+
+        const { error } = await supabaseClient
+          .from("customers")
+          .delete()
+          .eq("name", name);
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        loadCustomers();
       }
+
+      /* ======================================================
+          AUTO LOGIN CHECK
+      ====================================================== */
+
+      window.onload = async () => {
+        const { data } =
+          await supabaseClient.auth.getUser();
+
+        if (data.user) {
+          showUser();
+
+          loadCustomers();
+        }
+      };
     </script>
   </body>
 </html>
