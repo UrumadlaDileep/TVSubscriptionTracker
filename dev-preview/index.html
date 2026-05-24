@@ -216,7 +216,7 @@
         }
 
         const { error } = await supabaseClient
-          .from("customers")
+          .from("subscriptions")
           .insert({
             name: customerName,
             end_date: endDate,
@@ -241,7 +241,7 @@
       async function loadCustomers() {
         const { data, error } =
           await supabaseClient
-            .from("customers")
+            .from("subscriptions")
             .select("*")
             .order("end_date");
 
@@ -332,7 +332,7 @@
           document.getElementById("editEndDate").value;
 
         const { error } = await supabaseClient
-          .from("customers")
+          .from("subscriptions")
           .update({
             end_date: newDate,
           })
@@ -360,7 +360,7 @@
         if (!confirmDelete) return;
 
         const { error } = await supabaseClient
-          .from("customers")
+          .from("subscriptions")
           .delete()
           .eq("name", name);
 
